@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Controle de Inventário - Oficina</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <h1><i class="fas fa-tools"></i> Sistema de Controle de Peças</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <main>
+            <div class="card">
+                <div class="card-header">
+                    <h2>Adicionar Nova Peça</h2>
+                    <button id="toggleForm" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Nova Peça
+                    </button>
+                </div>
+                <div class="card-body form-container" id="formContainer">
+                    <form id="pecaForm">
+                        <div class="form-group">
+                            <label for="nome">Nome da Peça*</label>
+                            <input type="text" id="nome" name="nome" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="descricao">Descrição</label>
+                            <textarea id="descricao" name="descricao" rows="2"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="quantidade">Quantidade*</label>
+                                <input type="number" id="quantidade" name="quantidade" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="preco">Preço (R$)</label>
+                                <input type="number" id="preco" name="preco" step="0.01" min="0">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="localizacao">Localização na Oficina</label>
+                            <input type="text" id="localizacao" name="localizacao">
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-success">Salvar</button>
+                            <button type="reset" class="btn btn-secondary">Limpar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Inventário de Peças</h2>
+                    <div class="search-container">
+                        <input type="text" id="searchInput" placeholder="Buscar peças...">
+                        <button class="btn btn-dark" id="searchBtn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Descrição</th>
+                                    <th>Quantidade</th>
+                                    <th>Preço</th>
+                                    <th>Localização</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pecasList">
+                                <!-- Os dados serão inseridos via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="emptyMessage" class="empty-message">
+                        <i class="fas fa-box-open"></i>
+                        <p>Nenhuma peça cadastrada</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para edição -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Peça</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="editForm">
+                    <input type="hidden" id="editId">
+                    <div class="form-group">
+                        <label for="editNome">Nome da Peça*</label>
+                        <input type="text" id="editNome" name="editNome" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDescricao">Descrição</label>
+                        <textarea id="editDescricao" name="editDescricao" rows="2"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editQuantidade">Quantidade*</label>
+                            <input type="number" id="editQuantidade" name="editQuantidade" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editPreco">Preço (R$)</label>
+                            <input type="number" id="editPreco" name="editPreco" step="0.01" min="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editLocalizacao">Localização na Oficina</label>
+                        <input type="text" id="editLocalizacao" name="editLocalizacao">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-success">Atualizar</button>
+                        <button type="button" class="btn btn-secondary" id="cancelEdit">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+
+</html>
