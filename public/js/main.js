@@ -29,6 +29,48 @@ function mostrarMensagemVazia() {
     }
 }
 
+// Função para mostrar notificações com informações de erro
+function mostrarNotificacao(mensagem, tipo) {
+    // Remover notificações anteriores
+    const notificacoesAnteriores = document.querySelectorAll('.notificacao');
+    notificacoesAnteriores.forEach(n => n.remove());
+
+    // Criar nova notificação
+    const notificacao = document.createElement('div');
+    notificacao.className = `notificacao ${tipo}`;
+    notificacao.innerHTML = `
+        <span>${mensagem}</span>
+        <button class="fechar-notificacao">&times;</button>
+    `;
+
+    document.body.appendChild(notificacao);
+
+    // Mostrar a notificação com um pequeno delay para o efeito de animação
+    setTimeout(() => {
+        notificacao.classList.add('show');
+    }, 10);
+
+    // Fechar evento
+    notificacao.querySelector('.fechar-notificacao').addEventListener('click', () => {
+        notificacao.classList.remove('show');
+        setTimeout(() => {
+            notificacao.remove();
+        }, 300);
+    });
+
+    // Fechar automaticamente após 5 segundos
+    setTimeout(() => {
+        if (document.body.contains(notificacao)) {
+            notificacao.classList.remove('show');
+            setTimeout(() => {
+                if (document.body.contains(notificacao)) {
+                    notificacao.remove();
+                }
+            }, 300);
+        }
+    }, 5000);
+}
+
 // Manipulação da Interface
 function toggleForm() {
     formContainer.classList.toggle('show');
@@ -102,11 +144,29 @@ function confirmarExclusao(peca) {
 async function buscarPecas() {
     try {
         const response = await fetch('/api/pecas');
+
+        // Verificar se a resposta é bem-sucedida
+        if (!response.ok) {
+            const contentType = response.headers.get('content-type');
+
+            if (contentType && contentType.includes('application/json')) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Erro desconhecido ao buscar peças');
+            } else {
+                const errorText = await response.text();
+                throw new Error(`Erro do servidor: ${errorText.substring(0, 100)}`);
+            }
+        }
+
         pecas = await response.json();
         renderizarPecas(pecas);
     } catch (error) {
         console.error('Erro ao buscar peças:', error);
-        alert('Erro ao carregar as peças. Verifique o console para mais detalhes.');
+        mostrarNotificacao(`Falha ao carregar peças: ${error.message}`, 'error');
+
+        // Mostrar interface vazia
+        pecas = [];
+        renderizarPecas(pecas);
     }
 }
 
@@ -135,10 +195,10 @@ async function adicionarPeca(novaPeca) {
             toggleForm();
         }
 
-        alert('Peça adicionada com sucesso!');
+        mostrarNotificacao('Peça adicionada com sucesso!', 'success');
     } catch (error) {
         console.error('Erro ao adicionar peça:', error);
-        alert(`Erro ao adicionar peça: ${error.message}`);
+        mostrarNotificacao(`Erro ao adicionar peça: ${error.message}`, 'error');
     }
 }
 
@@ -168,10 +228,10 @@ async function atualizarPeca(id, dadosAtualizados) {
         renderizarPecas(pecas);
         fecharModalEdicao();
 
-        alert('Peça atualizada com sucesso!');
+        mostrarNotificacao('Peça atualizada com sucesso!', 'success');
     } catch (error) {
         console.error('Erro ao atualizar peça:', error);
-        alert(`Erro ao atualizar peça: ${error.message}`);
+        mostrarNotificacao(`Erro ao atualizar peça: ${error.message}`, 'error');
     }
 }
 
@@ -190,10 +250,10 @@ async function deletarPeca(id) {
         pecas = pecas.filter(p => p._id !== id);
         renderizarPecas(pecas);
 
-        alert('Peça removida com sucesso!');
+        mostrarNotificacao('Peça removida com sucesso!', 'success');
     } catch (error) {
         console.error('Erro ao remover peça:', error);
-        alert(`Erro ao remover peça: ${error.message}`);
+        mostrarNotificacao(`Erro ao remover peça: ${error.message}`, 'error');
     }
 }
 
