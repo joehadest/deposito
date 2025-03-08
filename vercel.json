@@ -12,12 +12,18 @@
     ],
     "routes": [
         {
-            "src": "/api/pecas",
-            "dest": "/api/pecas.js"
+            "src": "/api/pecas/([^/]+)",
+            "dest": "/api/pecas/[id].js?id=$1",
+            "methods": [
+                "GET",
+                "PUT",
+                "DELETE",
+                "OPTIONS"
+            ]
         },
         {
-            "src": "/api/pecas/(.*)",
-            "dest": "/api/pecas/[id].js"
+            "src": "/api/pecas",
+            "dest": "/api/pecas.js"
         },
         {
             "src": "/api/(.*)",

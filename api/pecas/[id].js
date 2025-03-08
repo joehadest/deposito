@@ -60,12 +60,10 @@ async function connectToDatabase() {
 
 // Handler para a rota /api/pecas/[id]
 module.exports = async (req, res) => {
-    const {
-        query: { id },
-        method,
-    } = req;
+    // Extrair ID da URL - verifica tanto query params quanto path params
+    const id = req.query.id || (req.url.split('/').pop().split('?')[0]);
 
-    console.log(`Requisição para /api/pecas/${id} - Método: ${method}`);
+    console.log(`Requisição para /api/pecas/${id} - Método: ${req.method}`);
 
     // Permitir CORS
     res.setHeader('Access-Control-Allow-Credentials', true);
@@ -74,7 +72,7 @@ module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept');
 
     // Responder a solicitações OPTIONS
-    if (method === 'OPTIONS') {
+    if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
 
@@ -82,13 +80,20 @@ module.exports = async (req, res) => {
         const db = await connectToDatabase();
 
         // Validar o ID
-        if (!id || !ObjectId.isValid(id)) {
-            return res.status(400).json({ error: 'ID inválido' });
+        if (!id) {
+            return res.status(400).json({ error: 'ID não fornecido', message: 'O ID da peça é obrigatório' });
         }
 
-        const objectId = new ObjectId(id);
+        // Verificar se o ID é válido para MongoDB
+        let objectId;
+        try {
+            objectId = new ObjectId(id);
+        } catch (idError) {
+            console.error('ID inválido:', id, idError);
+            return res.status(400).json({ error: 'ID inválido', message: `O ID fornecido não é válido: ${id}` });
+        }
 
-        switch (method) {
+        switch (req.method) {
             case 'GET':
                 // Obter uma peça específica
                 const peca = await db.collection('pecas').findOne({ _id: objectId });
@@ -120,16 +125,36 @@ module.exports = async (req, res) => {
 
             case 'DELETE':
                 // Excluir uma peça
-                const resultado = await db.collection('pecas').deleteOne({ _id: objectId });
+                console.log(`Tentando excluir peça com ID: ${id}`);
 
-                if (resultado.deletedCount === 0) {
-                    return res.status(404).json({ error: 'Peça não encontrada' });
+                try {
+                    const resultado = await db.collection('pecas').deleteOne({ _id: objectId });
+
+                    console.log('Resultado da exclusão:', resultado);
+
+                    if (resultado.deletedCount === 0) {
+                        return res.status(404).json({
+                            error: 'Peça não encontrada',
+                            message: `Nenhuma peça foi encontrada com o ID ${id}`
+                        });
+                    }
+
+                    return res.status(200).json({
+                        success: true,
+                        message: 'Peça excluída com sucesso',
+                        id: id
+                    });
+                } catch (deleteError) {
+                    console.error(`Erro ao excluir peça ID ${id}:`, deleteError);
+                    return res.status(500).json({
+                        error: 'Falha na operação de exclusão',
+                        message: deleteError.message,
+                        id: id
+                    });
                 }
 
-                return res.status(200).json({ message: 'Peça excluída com sucesso' });
-
             default:
-                return res.status(405).json({ error: `Método ${method} não permitido` });
+                return res.status(405).json({ error: `Método ${req.method} não permitido` });
         }
     } catch (error) {
         console.error(`Erro em /api/pecas/${id}:`, error);

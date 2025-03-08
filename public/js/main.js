@@ -136,7 +136,13 @@ function renderizarPecas(listaPecas) {
 
 function confirmarExclusao(peca) {
     if (confirm(`Deseja realmente excluir "${peca.nome}"?`)) {
-        deletarPeca(peca._id);
+        // Garantir que temos um ID válido
+        const id = peca._id ? peca._id.toString() : peca.id;
+        if (!id) {
+            mostrarNotificacao("ID da peça não encontrado", "error");
+            return;
+        }
+        deletarPeca(id);
     }
 }
 
@@ -237,19 +243,33 @@ async function atualizarPeca(id, dadosAtualizados) {
 
 async function deletarPeca(id) {
     try {
+        console.log(`Tentando excluir peça com ID: ${id}`);
+
         const response = await fetch(`/api/pecas/${id}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.mensagem || 'Erro ao excluir peça');
+            let errorMessage = 'Erro ao excluir peça';
+
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.message || errorData.error || errorMessage;
+            } catch (jsonError) {
+                // Se não conseguir ler como JSON, tenta ler como texto
+                const errorText = await response.text();
+                errorMessage = errorText || errorMessage;
+            }
+
+            throw new Error(errorMessage);
         }
 
         // Remove da lista local
         pecas = pecas.filter(p => p._id !== id);
         renderizarPecas(pecas);
-
         mostrarNotificacao('Peça removida com sucesso!', 'success');
     } catch (error) {
         console.error('Erro ao remover peça:', error);
